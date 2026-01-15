@@ -1,4 +1,4 @@
-<?php
+ <?php
 session_start();
 require_once '../includes/db.php';
 require_once '../includes/functions.php';
@@ -29,13 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $full_name = sanitize($_POST['full_name']);
     $email = sanitize($_POST['email']);
     $phone = sanitize($_POST['phone']);
+    $gender = sanitize($_POST['gender']); // ✅ ADDED
 
     try {
         $stmt = $pdo->prepare(
-            "INSERT INTO registrations (event_id, full_name, email, phone) 
-             VALUES (?, ?, ?, ?)"
+            "INSERT INTO registrations (event_id, full_name, email, phone, gender) 
+             VALUES (?, ?, ?, ?, ?)"
         );
-        $stmt->execute([$event_id, $full_name, $email, $phone]);
+        $stmt->execute([$event_id, $full_name, $email, $phone, $gender]);
         $success = "🎉 Registration successful! We’re excited to have you.";
     } catch (PDOException $e) {
         $error = "Registration failed. Please try again.";
@@ -197,9 +198,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <input type="email" name="email" class="form-control" required>
                                     </div>
 
-                                    <div class="mb-4">
+                                    <div class="mb-3">
                                         <label class="form-label">Phone Number</label>
                                         <input type="tel" name="phone" class="form-control" required>
+                                    </div>
+
+                                    <!-- ✅ ONLY NEW FIELD -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Gender</label>
+                                        <select name="gender" class="form-control" required>
+                                            <option value="">Select gender</option>
+                                            <option>Male</option>
+                                            <option>Female</option>
+                                            <option>Non-binary</option>
+                                            <option>Prefer not to say</option>
+                                        </select>
                                     </div>
 
                                     <button type="submit"
