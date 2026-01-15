@@ -538,7 +538,12 @@ $reg_percent = min(($total_registrations / $reg_target) * 100, 100);
                                     <td>
                                         <a href="view_event.php?id=<?php echo $event['id']; ?>" class="btn-small">View</a>
                                         <a href="edit_event.php?id=<?php echo $event['id']; ?>" class="btn-small">Edit</a>
-                                        <button class="btn-share share-btn" data-title="<?php echo htmlspecialchars($event['title']); ?>" data-url="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/event_register.php?event_id=' . $event['id']; ?>">Share</button>
+                                    <button class="btn-share share-btn" 
+                                        data-title="<?php echo htmlspecialchars($event['title']); ?>" 
+                                        data-url="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/matrixevent/event/register.php?event_id=' . $event['id']; ?>">
+                                        Share
+                                    </button>
+
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
