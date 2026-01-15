@@ -333,6 +333,35 @@ function h($string) {
         .stats-section-container {
             perspective: 1200px;
         }
+        /* ===== FOOTER VISIBILITY FIX (ONLY) ===== */
+        footer {
+            background-color: #0f172a !important; /* clean dark navy */
+        }
+
+        footer a {
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        footer a:hover {
+            color: #60a5fa !important;
+            text-decoration: underline;
+        }
+
+        footer .text-muted {
+            color: #cbd5f5 !important;
+        }
+
+        /* ===== REMOVE PINKISH COLOR FROM EVENT CARDS ===== */
+        .event-card {
+            background: #ffffff !important;
+            border-radius: 12px;
+        }
+
+        .event-card .card-body {
+            background: #ffffff !important;
+        }
+
     </style>
 </head>
 <body>
@@ -485,8 +514,8 @@ function h($string) {
                 </div>
                 <div class="col-md-3 mb-4">
                     <h5 class="fw-bold mb-4">Contact</h5>
-                    <p class="text-muted mb-1"><i class="fas fa-envelope me-2"></i> hello@matrixevent.com</p>
-                    <p class="text-muted"><i class="fas fa-phone me-2"></i> +1 234 567 890</p>
+                    <p class="text-muted mb-1"><i class="fas fa-envelope me-2"></i> okpealfred97@gmail.com</p>
+                    <p class="text-muted"><i class="fas fa-phone me-2"></i> +2347032979637</p>
                 </div>
                 <div class="col-md-3">
                     <h5 class="fw-bold mb-4">Follow Us</h5>
