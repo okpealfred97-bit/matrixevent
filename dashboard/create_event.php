@@ -10,10 +10,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $event_date = $_POST['event_date'];
     $event_time = $_POST['event_time'];
     $location = sanitize($_POST['location']);
+    $max_people = (int)$_POST['max_people'];
     $user_id = $_SESSION['user_id'] ?? null;
 
     if (!$user_id) {
         $error = "Session expired. Please login again.";
+    } elseif ($max_people < 1) {
+        $error = "Max people must be at least 1.";
     } else {
         $image_path = 'assets/images/events/default.jpg';
 
@@ -26,11 +29,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $stmt = $pdo->prepare(
-            "INSERT INTO events (user_id, title, description, event_date, event_time, location, image_path)
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO events 
+            (user_id, title, description, event_date, event_time, location, image_path, max_people)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
-        $stmt->execute([$user_id, $title, $description, $event_date, $event_time, $location, $image_path]);
+        $stmt->execute([
+            $user_id,
+            $title,
+            $description,
+            $event_date,
+            $event_time,
+            $location,
+            $image_path,
+            $max_people
+        ]);
+
         header("Location: event_success.php");
         exit;
     }
@@ -53,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="d-flex">
 
-    <!-- SIDEBAR -->
     <aside class="sidebar">
         <h4 class="fw-bold text-primary mb-4">MatrixEvent</h4>
 
@@ -81,7 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </ul>
     </aside>
 
-    <!-- MAIN -->
     <div class="main-content flex-grow-1 p-4">
 
         <h2 class="fw-bold">Create New Event</h2>
@@ -94,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="alert alert-danger"><?= $error ?></div>
                 <?php endif; ?>
 
-                <!-- PROGRESS -->
                 <div class="mb-4">
                     <div class="progress" style="height:8px">
                         <div id="progressBar" class="progress-bar bg-primary"></div>
@@ -107,132 +118,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <!-- STEP 1 -->
                     <div class="step step-card">
                         <h4 class="step-title">🎯 What’s your event?</h4>
-                        <p class="step-subtitle">Give your event a catchy identity</p>
 
-                        <label class="fancy-label">
-                            <span class="icon-badge title">✨</span> Event Name
-                        </label>
-                        <input type="text" name="title" class="form-control fancy-input mb-4" required>
-        
-                        <label class="fancy-label">
-                            <span class="icon-badge type">🎉</span> Event Type
-                        </label>
-                        <select id="eventType" class="form-select fancy-input mb-4">
-                            <option>Party</option>
-                            <option>Conference</option>
-                            <option>Wedding</option>
-                            <option>Online</option>
-                            <option>Others</option>
-                        </select>
+                        <label class="fancy-label">Event Name</label>
+                        <input type="text" name="title" class="form-control fancy-input mb-3" required>
 
-                        <label class="fancy-label">
-                            <span class="icon-badge desc">📝</span> Description
-                        </label>
-                        <textarea name="description" class="form-control fancy-input" rows="4" required></textarea>
+                        <label class="fancy-label">Description</label>
+                        <textarea name="description" class="form-control fancy-input mb-3" rows="4" required></textarea>
+
+                        <label class="fancy-label">👥 Max People Allowed</label>
+                        <input type="number" name="max_people" class="form-control fancy-input" min="1" required>
                     </div>
 
-                     <!-- STEP 2 -->
-                        <div class="step d-none step-card">
-                            <h4 class="step-title">📅 When & Where?</h4>
+                    <!-- STEP 2 -->
+                    <div class="step d-none step-card">
+                        <h4 class="step-title">📅 When & Where?</h4>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <label class="fancy-label">
-                                        <span class="icon-badge date">📅</span> Date
-                                    </label>
-                                    <input type="date" name="event_date" class="form-control fancy-input" required>
-                                </div>
+                        <input type="date" name="event_date" class="form-control fancy-input mb-3" required>
+                        <input type="time" name="event_time" class="form-control fancy-input mb-3" required>
 
-                                <div class="col-md-6 mb-4">
-                                    <label class="fancy-label">
-                                        <span class="icon-badge time">⏰</span> Time
-                                    </label>
-                                    <input type="time" name="event_time" class="form-control fancy-input" required>
-                                </div>
-                            </div>
+                        <select name="event_type" id="eventType" class="form-control fancy-input mb-3" required>
+                            <option value="">Select event type</option>
+                            <option value="physical">Physical</option>
+                            <option value="online">Online</option>
+                            <option value="hybrid">Hybrid</option>
+                        </select>
 
-                            <!-- Event Type -->
-                            <label class="fancy-label">
-                                <span class="icon-badge location">📍</span> Event Type
-                            </label>
-                            <select name="event_type" id="eventType" class="form-control fancy-input" required>
-                                <option value="">Select event type</option>
-                                <option value="physical">Physical Event</option>
-                                <option value="online">Online Event</option>
-                                <option value="hybrid">Hybrid Event</option>
-                            </select>
-                            <!-- Physical Location -->
-                            <div class="mt-4 d-none" id="physicalBox">
-                                <label class="fancy-label">
-                                    <span class="icon-badge location">📍</span> Event Venue
-                                </label>
-                                <input
-                                    type="text"
-                                    name="physical_location"
-                                    class="form-control fancy-input"
-                                    placeholder="Enter venue address"
-                                >
-                            </div>
-
-                            <!-- Online Link -->
-                            <div class="mt-4 d-none" id="onlineBox">
-                                <label class="fancy-label">
-                                    <span class="icon-badge location">📍</span> Online Event Link
-                                </label>
-                                <input
-                                    type="url"
-                                    name="online_link"
-                                    class="form-control fancy-input"
-                                    placeholder="https://zoom.us / meet.google.com"
-                                >
-                            </div>
-
-
-                            <!-- Physical Location -->
-                            <div class="mt-4 d-none" id="physicalLocation">
-                                <label class="fancy-label">
-                                    <span class="icon-badge location">📍</span> Physical Location
-                                </label>
-                                <input type="text" name="physical_location" class="form-control fancy-input" placeholder="Enter venue address">
-                            </div>
-
-                            <!-- Online Link -->
-                            <div class="mt-4 d-none" id="onlineLocation">
-                                <label class="fancy-label">
-                                    <span class="icon-badge location">📍</span> Online Event Link
-                                </label>
-                                <input type="url" name="online_link" class="form-control fancy-input" placeholder="https://zoom.us / meet.google.com">
-                            </div>
-                            
-
-                            <!-- Legacy / Combined Location (kept for compatibility) -->
-                            <input type="hidden" name="location">
+                        <div class="d-none" id="physicalBox">
+                            <input type="text" class="form-control fancy-input mb-3" placeholder="Venue">
                         </div>
+
+                        <div class="d-none" id="onlineBox">
+                            <input type="url" class="form-control fancy-input mb-3" placeholder="Online link">
+                        </div>
+
+                        <input type="hidden" name="location">
+                    </div>
 
                     <!-- STEP 3 -->
                     <div class="step d-none step-card">
-                        <h4 class="step-title">🖼 Make it attractive</h4>
-
-                        <label class="fancy-label">
-                            <span class="icon-badge image">📸</span> Cover Image
-                        </label>
+                        <h4 class="step-title">🖼 Image</h4>
                         <input type="file" name="image" class="form-control fancy-input" onchange="previewImage(event)">
-
-                        <img id="imagePreview" class="img-fluid rounded shadow mt-4 d-none" style="max-height:220px">
+                        <img id="imagePreview" class="img-fluid rounded mt-3 d-none">
                     </div>
 
                     <!-- STEP 4 -->
                     <div class="step d-none step-card">
                         <h4 class="step-title">👀 Preview</h4>
-
-                        <div class="preview-box">
-                            <p><span class="icon-badge preview">🎯</span> <strong id="previewTitle"></strong></p>
-                            <p><span class="icon-badge date">📅</span> <span id="previewDate"></span></p>
-                            <p><span class="icon-badge location">📍</span> <span id="previewLocation"></span></p>
-                        </div>
+                        <p><strong id="previewTitle"></strong></p>
+                        <p id="previewDate"></p>
+                        <p id="previewLocation"></p>
                     </div>
 
-                    <!-- NAV -->
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary" onclick="prevStep()">⬅ Back</button>
                         <button type="button" class="btn btn-primary" onclick="nextStep()">Next ➡</button>
@@ -257,30 +193,15 @@ const submitBtn = document.getElementById('submitBtn');
 function showStep(i) {
     steps.forEach(s => s.classList.add('d-none'));
     steps[i].classList.remove('d-none');
-
     stepText.innerText = i + 1;
     progress.style.width = ((i + 1) / steps.length) * 100 + '%';
     submitBtn.classList.toggle('d-none', i !== steps.length - 1);
-
-    if (i === steps.length - 1) {
-        previewTitle.innerText = document.querySelector('[name="title"]').value;
-        previewDate.innerText =
-            document.querySelector('[name="event_date"]').value + ' @ ' +
-            document.querySelector('[name="event_time"]').value;
-        previewLocation.innerText =
-            document.querySelector('[name="location"]').value;
-    }
 }
 
-function nextStep() {
-    if (currentStep < steps.length - 1) showStep(++currentStep);
-}
+function nextStep(){ if(currentStep < steps.length-1) showStep(++currentStep); }
+function prevStep(){ if(currentStep > 0) showStep(--currentStep); }
 
-function prevStep() {
-    if (currentStep > 0) showStep(--currentStep);
-}
-
-function previewImage(e) {
+function previewImage(e){
     const img = document.getElementById('imagePreview');
     img.src = URL.createObjectURL(e.target.files[0]);
     img.classList.remove('d-none');
@@ -288,28 +209,7 @@ function previewImage(e) {
 
 showStep(0);
 </script>
-<script>
-document.getElementById('eventType').addEventListener('change', function () {
-    const physical = document.getElementById('physicalLocation');
-    const online = document.getElementById('onlineLocation');
 
-    physical.classList.add('d-none');
-    online.classList.add('d-none');
-
-    if (this.value === 'physical') {
-        physical.classList.remove('d-none');
-    }
-
-    if (this.value === 'online') {
-        online.classList.remove('d-none');
-    }
-
-    if (this.value === 'hybrid') {
-        physical.classList.remove('d-none');
-        online.classList.remove('d-none');
-    }
-});
-</script>
 <script>
 const eventType = document.getElementById('eventType');
 const physicalBox = document.getElementById('physicalBox');
@@ -318,7 +218,6 @@ const onlineBox = document.getElementById('onlineBox');
 eventType.addEventListener('change', function () {
     physicalBox.classList.add('d-none');
     onlineBox.classList.add('d-none');
-
     if (this.value === 'physical') physicalBox.classList.remove('d-none');
     if (this.value === 'online') onlineBox.classList.remove('d-none');
     if (this.value === 'hybrid') {
@@ -327,8 +226,6 @@ eventType.addEventListener('change', function () {
     }
 });
 </script>
-
-
 
 </body>
 </html>
